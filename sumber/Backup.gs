@@ -21,9 +21,9 @@ function doPost(e) {
         ps.getRange(2, 1, Math.max(ps.getMaxRows() - 1, n), 12).clearContent();
         ps.getRange(2, 1, n, 7).setValues(d.produk.map(function (r) { return r.slice(0, 7); }));
         ps.getRange(2, 10, n, 3).setValues(d.produk.map(function (r) { return [r[7], r[8], r[9]]; }));
-        var f = [];
-        for (var i = 0; i < n; i++) { var x = i + 2; f.push(['=IF(F' + x + '=0;"";D' + x + '-F' + x + '-G' + x + ')', '=IF(H' + x + '="";"";H' + x + '/D' + x + ')']); }
-        ps.getRange(2, 8, n, 2).setFormulas(f);
+        var fm = [];
+        for (var i = 0; i < n; i++) { var x = i + 2; fm.push(['=IF(F' + x + '=0,"",D' + x + '-F' + x + '-G' + x + ')', '=IF(H' + x + '="","",H' + x + '/D' + x + ')']); }
+        ps.getRange(2, 8, n, 2).setFormulas(fm);
       }
       writeAll(po, d.pesanan || [], 19, [11, 12, 14, 15, 16]);
       writeAll(pa, d.aduan || [], 9, []);
