@@ -309,7 +309,7 @@ function onAdminClick(e) {
     case 'reAdd': { var path = el.getAttribute('data-p'), arr = getPath(AD.S, path), key = path.split('.').pop(), t = clone(ROW_TPL[key] || {}); if (key === 'items') t.id = 'TM-' + ('0' + (arr.length + 1)).slice(-2); arr.push(t); markDirty(); renderAdmin(); break; }
     case 'reDel': { getPath(AD.S, el.getAttribute('data-p')).splice(+el.getAttribute('data-i'), 1); markDirty(); renderAdmin(); break; }
     case 'cSave': aCall('adminComplaintUpdate', { id: id, status: $('cs-' + id).value, reply: $('cr-' + id).value }).then(function (r) { if (r.ok) { toast('Aduan diperbarui'); loadAdmin(); } else toast(r.error, true); }); break;
-    case 'backupNow': el.disabled = true; aCall('adminBackupNow').then(function (r) { el.disabled = false; toast(r.ok ? 'Backup dibuat di Google Drive Anda.' : r.error, !r.ok); }); break;
+    case 'backupNow': el.disabled = true; aCall('adminBackupNow').then(function (r) { el.disabled = false; toast(r.ok ? 'Cadangan terkirim ke Google Sheet (' + (r.orders || 0) + ' pesanan, ' + (r.products || 0) + ' produk).' : r.error, !r.ok); }); break;
     case 'csv': csvExport(); break;
     case 'csvProd': csvProducts(); break;
   }

@@ -171,8 +171,21 @@ async function createOrder(d: any) {
   const { data, error } = await sb.rpc("commit_order", { o, dl: dec, cap });
   if (error) { console.error(error); return err("Pesanan gagal disimpan. Coba lagi."); }
   if (!data.ok) return data;
+  if (!data.duplicate) sheetPush({ tab: "Pesanan", row: orderRow(data.order) });
   return { ok: true, duplicate: !!data.duplicate, order: toO(data.order, false) };
 }
+
+/* ---------- cadangan otomatis ke Google Sheet (opsional) ---------- */
+// Aktif bila secret SHEET_WEBHOOK_URL (dan SHEET_TOKEN) diisi. Kegagalan tidak menggagalkan pesanan.
+function sheetPush(payload: any) {
+  const url = Deno.env.get("SHEET_WEBHOOK_URL");
+  if (!url) return;
+  const p = fetch(url, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ token: Deno.env.get("SHEET_TOKEN") || "", ...payload }), signal: AbortSignal.timeout(8000) }).then((r) => r.text()).catch((e) => console.error("sheetPush", String(e)));
+  const er = (globalThis as any).EdgeRuntime;
+  if (er && er.waitUntil) er.waitUntil(p);
+}
+function wib(t: any) { return new Date(new Date(t).getTime() + 7 * 36e5).toISOString().slice(0, 16).replace("T", " "); }
+function orderRow(o: any) { return [o.id, wib(o.created_at), o.name, o.wa, o.method, o.zone, o.address, o.date, o.slot, o.summary, o.subtotal, o.discount, o.voucher, o.shipping, o.total, o.margin, o.payment, o.note, o.status]; }
 
 /* ---------- penanganan aksi ---------- */
 async function handle(r: any): Promise<any> {
@@ -192,7 +205,9 @@ async function handle(r: any): Promise<any> {
     const S = await getSettings();
     if (!S.complaintEnabled) return err("Fitur aduan sedang dinonaktifkan.");
     if (!r.name || normWa(r.wa).length < 9 || String(r.message || "").length < 5) return err("Isi nama, nomor WhatsApp, dan isi aduan.");
-    await sb.from("complaints").insert({ id: "AD-" + Date.now().toString(36).toUpperCase(), name: clean(r.name, 80), wa: normWa(r.wa), order_id: clean(r.orderId, 30), type: clean(r.type, 40), message: clean(r.message, 800) });
+    const cid = "AD-" + Date.now().toString(36).toUpperCase();
+    await sb.from("complaints").insert({ id: cid, name: clean(r.name, 80), wa: normWa(r.wa), order_id: clean(r.orderId, 30), type: clean(r.type, 40), message: clean(r.message, 800) });
+    sheetPush({ tab: "Aduan", row: [cid, wib(Date.now()), clean(r.name, 80), normWa(r.wa), clean(r.orderId, 30), clean(r.type, 40), clean(r.message, 800), "Baru", ""] });
     return { ok: true };
   }
   if (a === "adminLogin") return await login(r.pin);
@@ -205,6 +220,7 @@ async function handle(r: any): Promise<any> {
   if (a === "adminOrderStatus") {
     if (!STATUSES.includes(r.status)) return err("Status tidak valid.");
     const { data, error } = await sb.rpc("set_order_status", { p_id: r.id, p_status: r.status });
+    if (!error && data && data.ok) sheetPush({ action: "status", id: r.id, status: r.status });
     return error ? err("Gagal mengubah status.") : data;
   }
   if (a === "adminProductSave") {
@@ -239,7 +255,21 @@ async function handle(r: any): Promise<any> {
     return { ok: true };
   }
   if (a === "adminComplaintUpdate") { await sb.from("complaints").update({ status: clean(r.status, 20), reply: clean(r.reply, 500) }).eq("id", r.id); return { ok: true }; }
-  if (a === "adminBackupNow") return err("Backup Google Sheet belum dihubungkan. Gunakan unduh CSV di tab ini.");
+  if (a === "adminBackupNow") {
+    const url = Deno.env.get("SHEET_WEBHOOK_URL");
+    if (!url) return err("Google Sheet belum disambungkan. Isi secret SHEET_WEBHOOK_URL di Supabase (lihat panduan). Sementara itu gunakan unduh CSV.");
+    const [ps, os, cs] = await Promise.all([allProducts(), sb.from("orders").select("*").order("created_at", { ascending: true }).limit(5000), sb.from("complaints").select("*").order("created_at", { ascending: true }).limit(2000)]);
+    const body = { token: Deno.env.get("SHEET_TOKEN") || "", action: "replaceAll",
+      produk: ps.map((p: any) => [p.id, p.name, p.cat, p.price, p.oldPrice, p.hpp, p.kemas, p.stock ?? "", p.active ? "Ya" : "Tidak", p.badge]),
+      pesanan: (os.data || []).map(orderRow),
+      aduan: (cs.data || []).map((c: any) => [c.id, wib(c.created_at), c.name, c.wa, c.order_id, c.type, c.message, c.status, c.reply]) };
+    try {
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(body), signal: AbortSignal.timeout(25000) });
+      const j = JSON.parse(await res.text());
+      if (!j.ok) return err("Google Sheet menolak data: " + (j.error || "tidak diketahui"));
+      return { ok: true, orders: (os.data || []).length, products: ps.length };
+    } catch (e) { console.error(e); return err("Tidak bisa menghubungi Google Sheet. Periksa alamat webhook dan pengaturan akses Apps Script."); }
+  }
   return err("Aksi tidak dikenal.");
 }
 

@@ -36,3 +36,20 @@ Belum tersambung. Sementara gunakan unduh CSV lalu buka di Google Sheets. Saat p
 - Nomor pesanan dibuat server dan atomik: kunci unik, pengecekan keranjang kembar dalam 3 menit, stok dan kuota sesi dikunci saat memesan.
 - Free plan Supabase cukup untuk toko kecil. Project yang tidak aktif lama bisa dijeda otomatis, jadi buka toko atau dashboard secara berkala.
 - Gratis ongkir kurir toko default Rp 100.000 (ubah di Pengaturan).
+
+---
+
+## Cadangan otomatis ke Google Sheet
+
+Spreadsheet cadangan: **SegarKite - Backup Data** (tab Produk, Pesanan, Aduan, Data Sources).
+
+Agar pesanan dan aduan baru masuk ke spreadsheet otomatis:
+
+1. Buka spreadsheet → **Ekstensi → Apps Script**. Hapus isi bawaan, tempel isi file `sumber/Backup.gs`, ganti `GANTI_DENGAN_KATA_RAHASIA` dengan kata sandi pilihan Anda, lalu simpan.
+2. **Terapkan → Deployment baru → Jenis: Aplikasi web**. Eksekusi sebagai: **Saya**. Yang memiliki akses: **Siapa saja**. Salin **URL aplikasi web** (berakhiran `/exec`).
+3. Di Supabase → **Edge Functions → Secrets**, tambahkan dua secret:
+   - `SHEET_WEBHOOK_URL` = URL aplikasi web tadi
+   - `SHEET_TOKEN` = kata sandi yang sama dengan di langkah 1
+4. Di panel admin → **Data & Backup** → **Backup sekarang** untuk mengirim seluruh data yang sudah ada.
+
+Setelah itu setiap pesanan, aduan, dan perubahan status otomatis tercatat di spreadsheet.
