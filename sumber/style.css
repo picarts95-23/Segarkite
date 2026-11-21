@@ -400,3 +400,8 @@ table.t input { width: 100%; min-width: 84px; padding: 6px 8px; border: 1px soli
 @media print { .adm-head, .tabs, .ac-nav, .ac-hero .btn, .btn, .toast, .demo-bar { display: none !important; } .set-sec, .ac-box { break-inside: avoid; } }
 .ac-hero .btn-ghost { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.55); }
 .ac-hero .btn-ghost:hover { background: rgba(255,255,255,.26); }
+
+.admin-btn { color: inherit; text-decoration: none; font-size: 11px; }
+.admin-link { display: inline-block; padding: 8px 14px; border: 1px solid rgba(209, 250, 229, .5); border-radius: 999px; opacity: 1; font-weight: 700; color: #d1fae5; text-decoration: none; }
+.admin-link:hover { background: rgba(255, 255, 255, .12); }
+@media (max-width: 640px) { .hd-acts .admin-btn { min-width: 44px; padding: 6px 8px; } }

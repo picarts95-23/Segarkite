@@ -413,6 +413,11 @@ table.t input { width: 100%; min-width: 84px; padding: 6px 8px; border: 1px soli
 .ac-hero .btn-ghost { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.55); }
 .ac-hero .btn-ghost:hover { background: rgba(255,255,255,.26); }
 
+.admin-btn { color: inherit; text-decoration: none; font-size: 11px; }
+.admin-link { display: inline-block; padding: 8px 14px; border: 1px solid rgba(209, 250, 229, .5); border-radius: 999px; opacity: 1; font-weight: 700; color: #d1fae5; text-decoration: none; }
+.admin-link:hover { background: rgba(255, 255, 255, .12); }
+@media (max-width: 640px) { .hd-acts .admin-btn { min-width: 44px; padding: 6px 8px; } }
+
 </style>
 <div id="demo-bar" class="demo-bar" hidden></div>
 <div id="view-store" hidden></div>
@@ -1332,6 +1337,7 @@ function renderStore() {
     '<div class="searchbox"><div class="sb-row"><input id="q" type="search" placeholder="Cari ikan, sayur, paket masak..." value="' + esc(St.q) + '" aria-label="Cari produk"><button data-a="search">Cari</button></div>' +
     (kws.length ? '<div class="kw"><b>Populer:</b>' + kws.map(function (k) { return '<button data-a="kw" data-k="' + esc(k) + '">' + esc(k) + '</button>'; }).join('') + '</div>' : '') + '</div>' +
     '<div class="hd-acts"><button class="hd-btn hide-m" data-a="vouchers"><span class="ic">🎟️</span>Voucher</button><button class="hd-btn hide-m" data-a="track"><span class="ic">📦</span>Pesanan</button>' +
+    '<a class="hd-btn admin-btn" href="#admin" aria-label="Masuk admin" title="Masuk admin"><span class="ic">🔐</span>Admin</a>' +
     '<button class="hd-btn cart-btn" data-a="cart" aria-label="Buka keranjang"><span class="ic">🛒</span><span class="label">Keranjang</span><span class="badge-n" id="cart-n"></span></button></div></div></header>';
   h += '<main>';
   h += '<section class="wrap sec" id="top" style="padding-top:18px"><div class="hero"><div id="hero"></div><div class="promos">' +
@@ -1348,7 +1354,7 @@ function renderStore() {
   var soc = [['Instagram', socialUrl('instagram', S.instagram)], ['TikTok', socialUrl('tiktok', S.tiktok)], ['Facebook', socialUrl('facebook', S.facebook)], ['YouTube', safeUrl(S.youtube)], ['Marketplace', safeUrl(S.marketplace)]].filter(function (x) { return x[1]; });
   h += '<footer style="background:var(--forest-3);color:#d1fae5;padding:30px 0 90px;margin-top:20px"><div class="wrap foot"><div><div class="fb"><img src="' + esc(logoSm(S)) + '" alt="">' + esc(S.storeName) + '</div><p style="font-size:13px">' + esc(S.about) + '</p></div>' +
     '<div><h4>Hubungi kami</h4><ul>' + (wa ? '<li><a href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp ' + esc(S.whatsapp) + '</a></li>' : '') + (S.email ? '<li><a href="mailto:' + esc(S.email) + '">' + esc(S.email) + '</a></li>' : '') + '<li>' + esc(S.address) + '</li><li>' + esc(S.hours) + '</li></ul></div>' +
-    '<div><h4>Ikuti kami</h4><div class="social">' + (soc.length ? soc.map(function (x) { return '<a href="' + esc(x[1]) + '" target="_blank" rel="noopener">' + x[0] + '</a>'; }).join('') : '<span class="muted">Segera hadir</span>') + '</div><p style="margin-top:16px"><a class="admin-link" href="#admin">Masuk admin</a></p></div></div></footer>';
+    '<div><h4>Ikuti kami</h4><div class="social">' + (soc.length ? soc.map(function (x) { return '<a href="' + esc(x[1]) + '" target="_blank" rel="noopener">' + x[0] + '</a>'; }).join('') : '<span class="muted">Segera hadir</span>') + '</div><p style="margin-top:16px"><a class="admin-link" href="#admin">🔐 Login Admin</a></p></div></div></footer>';
   h += '<div class="scrim" data-a="closeall"></div><aside class="drawer" id="drawer" role="dialog" aria-label="Keranjang belanja" aria-modal="true"></aside>';
   h += '<nav class="bnav" aria-label="Menu bawah"><a href="#top" data-a="top"><span class="ic">🏠</span>Beranda</a><button data-a="catalogGo"><span class="ic">🗂️</span>Katalog</button><button data-a="vouchers"><span class="ic">🎟️</span>Voucher</button><button data-a="track"><span class="ic">📦</span>Pesanan</button><button data-a="cart"><span class="ic">🛒</span>Keranjang<span class="badge-n" id="cart-n2"></span></button></nav>';
   v.innerHTML = h;
